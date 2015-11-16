@@ -38,10 +38,10 @@ exports.trimImages = function (files, options, callback) {
 			if (options.trim) {
 				var rect = item.match(/ ([0-9]+)x([0-9]+)[\+\-]([0-9]+)[\+\-]([0-9]+)/);
 				files[i].trim = {};
-				files[i].trim.x = parseInt(rect[3], 10) - 1;
-				files[i].trim.y = parseInt(rect[4], 10) - 1;
-				files[i].trim.width = parseInt(rect[1], 10) - 2;
-				files[i].trim.height = parseInt(rect[2], 10) - 2;
+				files[i].trim.x = parseInt(rect[3], 10);
+				files[i].trim.y = parseInt(rect[4], 10);
+				files[i].trim.width = parseInt(rect[1], 10);
+				files[i].trim.height = parseInt(rect[2], 10);
 
 				files[i].trimmed = (files[i].trim.width !== files[i].width - options.padding * 2 || files[i].trim.height !== files[i].height - options.padding * 2);
 			}
@@ -66,9 +66,9 @@ exports.trimImages = function (files, options, callback) {
  * @param {function} callback
  */
 exports.determineCanvasSize = function (files, options, callback) {
-	files.forEach(function (item) {
-		item.w = item.width;
-		item.h = item.height;
+	files.forEach(function(item) {
+		item.w = item.trimmed ? item.trim.width : item.width;
+		item.h = item.trimmed ? item.trim.height : item.height;
 	});
 
 	// sort files based on the choosen options.sort method

@@ -4,34 +4,33 @@
 <plist version="1.0">
     <dict>
         <key>frames</key>
-        <dict>
-        <%#files%>
-        <%#trimmed%>
-            <key><%name%><%extension%></key>
-            <string>{{<%x%>,<%y%>},{<%width%>,<%height%>}}</string>
-            <key>offset</key>
-            <string>{<%trim.offsetX%>,<%trim.offsetY%>}</string>
-            <key>rotated</key>
-            <false/>
-            <key>sourceColorRect</key>
-            <string>{{<%trim.x%>,<%trim.y%>},{<%trim.width%>,<%trim.height%>}}</string>
-            <key>sourceSize</key>
-            <string>{<%trim.width%>,<%trim.height%>}</string>
-        <%/trimmed%>
-        <%^trimmed%>
-            <key><%name%><%extension%></key>
-            <string>{{<%x%>,<%y%>},{<%width%>,<%height%>}}</string>
-            <key>offset</key>
-            <string>{0,0}</string>
-            <key>rotated</key>
-            <false/>
-            <key>sourceColorRect</key>
-            <string>{{0,0},{<%width%>,<%height%>}}</string>
-            <key>sourceSize</key>
-            <string>{<%width%>,<%height%>}</string>
-        <%/trimmed%>
-        <%/files%>
-        </dict>
+            <dict>
+            <%#files%>
+                <key><%name%><%extension%></key>
+                    <dict>
+                        <key>frame</key>
+                        <string>{{<%x%>,<%y%>},{<%width%>,<%height%>}}</string>
+                        <key>rotated</key>
+                        <false/>
+                    <%#trimmed%>
+                        <key>offset</key>
+                        <string>{<%trim.offsetX%>,<%trim.offsetY%>}</string>
+                        <key>sourceColorRect</key>
+                        <string>{{<%trim.x%>,<%trim.y%>},{<%trim.width%>,<%trim.height%>}}</string>
+                        <key>sourceSize</key>
+                        <string>{<%trim.width%>,<%trim.height%>}</string>
+                    <%/trimmed%>
+                    <%^trimmed%>
+                        <key>offset</key>
+                        <string>{0,0}</string>
+                        <key>sourceColorRect</key>
+                        <string>{{0,0},{<%width%>,<%height%>}}</string>
+                        <key>sourceSize</key>
+                        <string>{<%width%>,<%height%>}</string>
+                    <%/trimmed%>
+                    </dict>
+            <%/files%>
+            </dict>
         <key>metadata</key>
         <dict>
             <key>format</key>
