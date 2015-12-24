@@ -110,4 +110,23 @@ def assemble(srcFolder, outTexture, scale, maxSize, hasAlpha):
 		'-o', outTexture])
 		os.remove(pngFilePath)
 
+def makeLOD(lodPath, dstDirPath, scale, maxSize, hasAlpha, fmt):
+	for name in os.listdir(lodPath):
+		srcPath = os.path.join(lodPath, name)
+		if os.path.isdir(srcPath):
+			assemble(srcPath, os.path.join(dstDirPath, name + '.' + fmt), scale, maxSize, hasAlpha)
+
+def run():
+	parser = argparse.ArgumentParser(prog='SPRITESHEET GENERATOR')
+	parser.add_argument('-appRoot')
+	parser.add_argument('-fmt')
+	parser.add_argument('-lods', nargs='*', default=['HDR', 'HD', 'SD'])
+	args = parser.parse_args()
+
+	textureDir = os.path.join(os.path.join(args.appRoot, 'runtime/temp/Textures'), args.fmt)
+	if not os.path.exists(textureDir):
+		os.makedirs(textureDir)
+
+	texSD
+
 	
