@@ -116,17 +116,56 @@ def makeLOD(lodPath, dstDirPath, scale, maxSize, hasAlpha, fmt):
 		if os.path.isdir(srcPath):
 			assemble(srcPath, os.path.join(dstDirPath, name + '.' + fmt), scale, maxSize, hasAlpha)
 
+def makePreset(srcDir, dstDir, subDir, scale, maxSize, rgbaFmt, rgbFmt):
+	if not dstDir:
+		return
+
+	if not os.path.exists(dstDir):
+			os.makedirs(dstDir)
+
+	srcPath = os.path.join(srcDir, 'rgba/shared')
+	if os.path.exists(srcPath)
+		makeLOD(srcPath, dstDir, scale, maxSize, True, rgbaFmt)
+
+	srcPath = os.path.join(srcDir, 'rgb/shared')
+	if os.path.exists(srcPath)
+		makeLOD(srcPath, dstDir, scale, maxSize, False, rgbFmt)
+
+	srcPath = os.path.join(srcDir, os.path.join('rgba', subDir))
+	if os.path.exists(srcPath)
+		makeLOD(srcPath, dstDir, 1, maxSize, True, rgbaFmt)
+
+	srcPath = os.path.join(srcDir, os.path.join('rgb', subDir))
+	if os.path.exists(srcPath)
+		makeLOD(srcPath, dstDir, 1, maxSize, False, rgbFmt)
+
 def run():
 	parser = argparse.ArgumentParser(prog='SPRITESHEET GENERATOR')
 	parser.add_argument('-appRoot')
 	parser.add_argument('-fmt')
-	parser.add_argument('-lods', nargs='*', default=['HDR', 'HD', 'SD'])
+	parser.add_argument('-lods', nargs='*', default=['xhd', 'hd', 'sd'])
 	args = parser.parse_args()
 
 	textureDir = os.path.join(os.path.join(args.appRoot, 'runtime/temp/Textures'), args.fmt)
 	if not os.path.exists(textureDir):
 		os.makedirs(textureDir)
 
-	texSD
+	texSD = texHD = texXHD = None
+	for lod in args.lods:
+		if 'sd' == lod:
+			texSD = os.path.join(textureDir, 'sd')
+		elif 'hd' == lod:
+			texHD = os.path.join(textureDir, 'hd')
+		elif 'xhd' == lod:
+			texXHD = os.path.join(textureDir, 'xhd')
+
+	srcDir = os.path.join(args.appRoot, 'assets/spritesheets')
+	makePreset(srcDir, texSD, 'sd', 0.25, 1024, 'png', args.fmt)
+	makePreset(srcDir, texHD, 'hd', 0.5, 2048, 'png', args.fmt)
+	makePreset(srcDir, texXHD, 'xhd', 1, 4096, 'png', args.fmt)
+
+# -------------- main --------------
+if __name__ == '__main__':
+	run()
 
 	
