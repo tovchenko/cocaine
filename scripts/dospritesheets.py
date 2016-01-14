@@ -1,4 +1,4 @@
-!#/usr/bin/python
+#!/usr/bin/python
 
 # dospritesheets.py
 # Copyright (C) 2015 Taras Tovchenko
@@ -19,62 +19,61 @@ import subprocess
 import datetime
 import re
 import argparse
-import platform
 import zlib
+import struct
 
 
 scriptDir = os.path.dirname(os.path.realpath(__file__))
 
 def spritePacker():
-	if 'Darwin' == platform.system():
+	if 'darwin' == sys.platform:
 		return os.path.join(scriptDir, '../tools/platform/macos/spriteglue.app/Contents/MacOS/spriteglue')
-	if 'Linux' == platform.system():
+	if sys.platform.startswith('linux'):
 		return os.path.join(scriptDir, '../tools/platform/linux/spriteglue/spriteglue')
-	if 'Windows' == platform.system():
+	if 'win32' == sys.platform:
 		return os.path.join(scriptDir, '../tools/platform/windows/spriteglue/spriteglue.exe')
 
 	return ''
 
 def pvrConverter():
-	if 'Darwin' == platform.system():
+	if 'darwin' == sys.platform:
 		return os.path.join(scriptDir, '../tools/platform/macos/PVRTexToolCLI')
-	if 'Linux' == platform.system():
+	if sys.platform.startswith('linux'):
 		return os.path.join(scriptDir, '../tools/platform/linux/PVRTexToolCLI')
-	if 'Windows' == platform.system():
+	if 'win32' == sys.platform:
 		return os.path.join(scriptDir, '../tools/platform/windows/PVRTexToolCLI.exe')
 
 	return ''
 
 def pkmConverter():
-	if 'Darwin' == platform.system():
+	if 'darwin' == sys.platform:
 		return os.path.join(scriptDir, '../tools/platform/macos/etc1tool')
-	if 'Linux' == platform.system():
+	if sys.platform.startswith('linux'):
 		return os.path.join(scriptDir, '../tools/platform/linux/etc1tool')
-	if 'Windows' == platform.system():
+	if 'win32' == sys.platform:
 		return os.path.join(scriptDir, '../tools/platform/windows/etc1tool.exe')
 
 	return ''
 
-def wasTextureModified(srcFolder, outTexture):
+def wasSourceModified(srcFolder, outTexture):
 	if not os.path.isdir(srcFolder):
 		print srcFolder + ' isn\'t a folder'
 		sys.exit(1)
 
 	if os.path.isfile(outTexture):
-		srcModDate = datetime.datetime.fromtimestamp(os.path.gettime(srcFolder))
-		dstModDate = datetime.datetime.fromtimestamp(os.path.gettime(outTexture))
-		if srcModDate > dstModDate:
-			return True
-	return False
+		srcModDate = datetime.datetime.fromtimestamp(os.path.getmtime(srcFolder))
+		dstModDate = datetime.datetime.fromtimestamp(os.path.getmtime(outTexture))
+		return srcModDate > dstModDate
+	return True
 
 def assemble(srcFolder, outTexture, scale, maxSize, hasAlpha):
 	texBaseName = os.path.basename(outTexture)
 	extension = re.search(r'\.(.*)$', texBaseName).groups()[0].lower()
-	pngFilePath = re.sub(r'\..*$', '.png', outTexture)
+	pngFilePath = os.path.join(os.path.dirname(outTexture), re.sub(r'\..*$', '.png', texBaseName))
 	doPkm = 'pkm' == extension and not hasAlpha
 	doPvr = 'pvr.ccz' == extension and not hasAlpha
 
-	if not wasTextureModified(srcFolder, outTexture):
+	if not wasSourceModified(srcFolder, outTexture):
 		return
 
 	subprocess.call([spritePacker(),
@@ -88,7 +87,7 @@ def assemble(srcFolder, outTexture, scale, maxSize, hasAlpha):
 		'--square' if doPvr else ''])
 
 	if doPvr:
-		pvrFilePath = re.sub(r'\..*$', '.pvr', outTexture)
+		pvrFilePath = os.path.join(os.path.dirname(outTexture), re.sub(r'\..*$', '.pvr', texBaseName))
 		subprocess.call([pvrConverter(),
 		'-i', pngFilePath,
 		'-o', pvrFilePath,
@@ -98,7 +97,7 @@ def assemble(srcFolder, outTexture, scale, maxSize, hasAlpha):
 		os.remove(pngFilePath)
 
 		indata = open(pvrFilePath, 'rb').read()
-		outdata = zlib.compress(indata, zlib.Z_BEST_COMPRESSION)
+		outdata = struct.pack('>4s2H2I', 'CCZ!', 0, 2, 0, sys.getsizeof(indata)) + zlib.compress(indata, zlib.Z_BEST_COMPRESSION)
 		pvrcczFile = open(outTexture, 'wb')
 		pvrcczFile.write(outdata)
 		pvrcczFile.close()
@@ -113,7 +112,7 @@ def assemble(srcFolder, outTexture, scale, maxSize, hasAlpha):
 def makeLOD(lodPath, dstDirPath, scale, maxSize, hasAlpha, fmt):
 	for name in os.listdir(lodPath):
 		srcPath = os.path.join(lodPath, name)
-		if os.path.isdir(srcPath):
+		if os.path.isdir(srcPath) and not name.startswith('.'):
 			assemble(srcPath, os.path.join(dstDirPath, name + '.' + fmt), scale, maxSize, hasAlpha)
 
 def makePreset(srcDir, dstDir, subDir, scale, maxSize, rgbaFmt, rgbFmt):
@@ -124,19 +123,19 @@ def makePreset(srcDir, dstDir, subDir, scale, maxSize, rgbaFmt, rgbFmt):
 			os.makedirs(dstDir)
 
 	srcPath = os.path.join(srcDir, 'rgba/shared')
-	if os.path.exists(srcPath)
+	if os.path.exists(srcPath):
 		makeLOD(srcPath, dstDir, scale, maxSize, True, rgbaFmt)
 
 	srcPath = os.path.join(srcDir, 'rgb/shared')
-	if os.path.exists(srcPath)
+	if os.path.exists(srcPath):
 		makeLOD(srcPath, dstDir, scale, maxSize, False, rgbFmt)
 
 	srcPath = os.path.join(srcDir, os.path.join('rgba', subDir))
-	if os.path.exists(srcPath)
+	if os.path.exists(srcPath):
 		makeLOD(srcPath, dstDir, 1, maxSize, True, rgbaFmt)
 
 	srcPath = os.path.join(srcDir, os.path.join('rgb', subDir))
-	if os.path.exists(srcPath)
+	if os.path.exists(srcPath):
 		makeLOD(srcPath, dstDir, 1, maxSize, False, rgbFmt)
 
 def run():
@@ -146,7 +145,7 @@ def run():
 	parser.add_argument('-lods', nargs='*', default=['xhd', 'hd', 'sd'])
 	args = parser.parse_args()
 
-	textureDir = os.path.join(os.path.join(args.appRoot, 'runtime/temp/Textures'), args.fmt)
+	textureDir = os.path.join(os.path.join(args.appRoot, 'temp/textures'), args.fmt)
 	if not os.path.exists(textureDir):
 		os.makedirs(textureDir)
 
